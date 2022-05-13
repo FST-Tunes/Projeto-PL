@@ -1,9 +1,8 @@
 import ply.yacc as yacc
+from lexer import tokens, literals 
 
-from lexer import tokens
-
-def p_lang(p):
-    "lang : '%''%' LEX Lex '%''%' YACC Yacc"
+def p_Program(p):
+    "Program : '%' '%' LEX Lex '%' '%' YACC Yacc"
 
 def p_Lex(p):
     "Lex : Dec Def"
@@ -15,7 +14,7 @@ def p_Dec_Single(p):
     "Dec : '%' Dec2"
 
 def p_Dec2_Tokens(p):
-    "Dec2 : TOKENS '=' Tokens"
+    "Dec2 : TOKENS '=' '[' Tokens ']'"
 
 def p_Dec2_Literals(p):
     "Dec2 : LITERALS '=' String"
@@ -23,39 +22,50 @@ def p_Dec2_Literals(p):
 def p_Dec2_Ignore(p):
     "Dec2 : IGNORE '=' String"
 
-def p_Tokens(p):
-    "Tokens : '[' Tokens2 ']'"
+def p_Tokens_list(p):
+    "Tokens : Tokens ',' Tokens2"
+
+def p_Tokens_single(p):
+    "Tokens : Tokens2"
 
 def p_Tokens2(p):
-    "Tokens2 : Tokens2 ',' Tokens3"
-
-def p_Tokens3(p):
-    "Tokens3 : ID "
+    "Tokens2 : P ID P "
 
 def p_String(p):
     "String : STRING"
 
+def p_Def_return(p):
+    "Def : REGEX RETURN '(' P ID P ','  ')'"
+
+def p_Def_error(p):
+    "Def : REGEX ERROR '(' ')'"
+
+
+
+
+def p_Yacc(p):
+    "Yacc : "
+
+
 
 def p_error(p):
-    print("Syntax error!")
-    p.parser.error = True
+    print('Erro sintatico: ', p)
+    parser.success = False
 
 
+
+
+# Build the parser
 parser = yacc.yacc()
-parser.symtab = {}
-parser.symcount = 0
-parser.error = False
 
-parser.ifcount = 0
-
+# Read line from input and parse it
 import sys
+parser.success = True
+program = sys.stdin.read()
+codigo = parser.parse(program)
 
-filename = sys.argv[1]
-
-f = open(filename, 'r')
-content = f.read()
-
-result = parser.parse(content)
-print(result)
-
-f.close()
+if parser.success:
+    print("Programa estruturalmente correto!")
+    print(codigo)
+else:
+    print("Programa com erros... Corrija e tente novamente!")
