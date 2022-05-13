@@ -8,7 +8,7 @@ def p_Lex(p):
     "Lex : Dec Def"
 
 def p_Dec_Multiple(p):
-    "Dec : Dec Dec2"
+    "Dec : Dec '%' Dec2"
 
 def p_Dec_Single(p):
     "Dec : '%' Dec2"
@@ -34,11 +34,17 @@ def p_Tokens2(p):
 def p_String(p):
     "String : STRING"
 
-def p_Def_return(p):
-    "Def : REGEX RETURN '(' P ID P ','  ')'"
+def p_Def2_return(p):
+    "Def2 : REGEX RETURN '(' P ID P ','  ')'"
 
-def p_Def_error(p):
-    "Def : REGEX ERROR '(' ')'"
+def p_Def2_error(p):
+    "Def2 : '.' ERROR '(' ')'"
+
+def p_Def_list(p):
+    "Def : Def Def2"
+
+def p_Def_single(p):
+    "Def : Def2"
 
 
 
@@ -61,8 +67,15 @@ parser = yacc.yacc()
 # Read line from input and parse it
 import sys
 parser.success = True
-program = sys.stdin.read()
-codigo = parser.parse(program)
+
+filename = sys.argv[1]
+
+f = open(filename, 'r')
+content = f.read()
+print(content)
+
+codigo = parser.parse(content)
+
 
 if parser.success:
     print("Programa estruturalmente correto!")

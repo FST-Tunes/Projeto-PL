@@ -1,7 +1,7 @@
 import ply.lex as lex
 
 tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "P", "RETURN", "ERROR"] 
-literals = ['=', '"', '[', ']', ',', '(', ')', '{', '}', ':', '%']
+literals = ['=', '"', '[', ']', ',', '(', ')', '{', '}', ':', '%', '.']
 
 def t_LEX(t):
     r'LEX'
