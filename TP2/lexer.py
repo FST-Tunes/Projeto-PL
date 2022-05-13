@@ -36,7 +36,7 @@ def t_P(t):
     return t
 
 def t_STRING(t):
-    r'\"[^"]*\"'
+    r'f?\"[^"]*\"'
     return t
 
 def t_REGEX(t):
