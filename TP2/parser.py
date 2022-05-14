@@ -2,7 +2,7 @@ import ply.yacc as yacc
 from lexer import tokens, literals 
 
 def p_Program(p):
-    "Program : '%' '%' LEX Lex '%' '%' YACC Yacc '%' '%' Main"
+    "Program : '%' '%' LEX Lex '%' '%' YACC '%' '%' Main"
 
 def p_Lex(p):
     "Lex : Dec Def"
@@ -14,22 +14,25 @@ def p_Dec_Single(p):
     "Dec : '%' Dec2"
 
 def p_Dec2_Tokens(p):
-    "Dec2 : TOKENS '=' '[' Tokens ']'"
+    "Dec2 : TOKENS '=' '[' Items ']'"
 
-def p_Dec2_Literals(p):
+def p_Dec2_Literals_list(p):
+    "Dec2 : LITERALS '=' '[' Items ']'"
+
+def p_Dec2_Literals_str(p):
     "Dec2 : LITERALS '=' String"
 
 def p_Dec2_Ignore(p):
     "Dec2 : IGNORE '=' String"
 
-def p_Tokens_list(p):
-    "Tokens : Tokens ',' Tokens2"
+def p_Items_list(p):
+    "Items : Items ',' Items2"
 
-def p_Tokens_single(p):
-    "Tokens : Tokens2"
+def p_Items_single(p):
+    "Items : Items2"
 
-def p_Tokens2(p):
-    "Tokens2 : P ID P "
+def p_Items2(p):
+    "Items2 : P ID P "
 
 def p_String(p):
     "String : STRING"
@@ -82,14 +85,50 @@ def p_Args_empty(p):
 def p_Yacc(p):
     "Yacc : "
 
+
+
+
 def p_Main_list(p):
     "Main : Main Main2"
 
-def p_Main_single(p):
-    "Main : Main2"
+def p_Main_empty(p):
+    "Main : "
 
-def p_Main2(p):
-    "Main2 : "
+def p_Main2_par(p):
+    "Main2 : '(' Main ')'"
+    
+def p_Main2_ret(p):
+    "Main2 : '[' Main ']'"
+    
+def p_Main2_chav(p):
+    "Main2 : '{' Main '}'"
+
+def p_Main2_funcDef(p):
+    "Main2 : ':'"
+
+def p_Main2_attrib(p):
+    "Main2 : '='"
+
+def p_Main2_coma(p):
+    "Main2 : ','"
+
+def p_Main2_p(p):
+    "Main2 : P"
+
+def p_Main2_id(p):
+    "Main2 : ID"
+
+def p_Main2_num(p):
+    "Main2 : NUM"
+
+def p_Main2_exp(p):
+    "Main2 : '.'"
+
+def p_Main2_str(p):
+    "Main2 : STRING"
+
+
+
 
 
 
@@ -111,9 +150,13 @@ filename = sys.argv[1]
 
 f = open(filename, 'r')
 content = f.read()
+print("\n---------------------   CONTENT  ---------------------\n")
 print(content)
+print("\n---------------------   TOKENS   ---------------------\n")
 
 codigo = parser.parse(content)
+
+print("\n---------------------   OUTPUT   ---------------------\n")
 
 
 if parser.success:
