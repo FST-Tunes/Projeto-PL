@@ -1,6 +1,6 @@
 import ply.lex as lex
 
-tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "NUM", "P"] 
+tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "NUM", "VALUE", "OP"] 
 literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')']
 
 def t_LEX(t):
@@ -28,8 +28,13 @@ def t_LITERALS(t):
     print(t)
     return t
 
-def t_P(t):
-    r'\''
+def t_OP(t):
+    r'((?:\+|-|\*|/|<|>|!)=?)|=='
+    print(t)
+    return t
+
+def t_VALUE(t):
+    r'\'[^\']+\''
     print(t)
     return t
 
