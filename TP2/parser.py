@@ -1,46 +1,37 @@
-from ast import parse
 import re
 import ply.yacc as yacc
 from lexer import tokens, literals 
 
 def p_Program(p):
     "Program : '%' '%' LEX NL Lex '%' '%' YACC NL Yacc '%' '%' NL Main"
-
-    print("\n# ---------------------   LEXER    ---------------------\n")
-    print(p[5])
-    print("\n# ---------------------   PARSER   ---------------------\n")
-    print(p[10])
-    print("\n# ---------------------   MAIN     ---------------------\n")
-    print(p[14])
+    parser.yacc = p[10] + "\n\n" + p[14]
 
 def p_Lex(p):
     "Lex : Dec Def"
-    p[0] = p[1] + "\n\n\n" + p[2]
+    parser.lex['def'] = p[2]
 
 def p_Dec_Multiple(p):
     "Dec : Dec '%' Dec2"
-    p[0] = p[3] + "\n" + p[1] 
 
 def p_Dec_Single(p):
     "Dec : '%' Dec2"
-    p[0] = p[2]
 
 def p_Dec2_Tokens(p):
     "Dec2 : TOKENS '=' '[' Items ']' NL"
-    p[0] = "tokens = " + "[" + p[4] + "]"
+    parser.lex['tokens'] = "tokens = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_list(p):
     "Dec2 : LITERALS '=' '[' Items ']' NL"
-    p[0] = "literals = " + "[" + p[4] + "]"
+    parser.lex['literals'] = "literals = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_str(p):
     "Dec2 : LITERALS '=' STRING NL"
     m = re.findall(r'([^\\"\']|\\[\\\"a-z])', p[3])
-    p[0] = "literals = " + str(m)
+    parser.lex['literals'] = "literals = " + str(m)
 
 def p_Dec2_Ignore(p):
     "Dec2 : IGNORE '=' STRING NL"
-    p[0] = "t_ignore = " + p[3]
+    parser.lex['ignore'] = "t_ignore = " + p[3]
 
 def p_Items_list(p):
     "Items : Items ',' Items2"
@@ -289,7 +280,6 @@ def p_Main2_str(p):
 
 
 
-
 def p_error(p):
     print('Erro sintatico: ', p)
     parser.success = False
@@ -297,9 +287,43 @@ def p_error(p):
 
 
 
+
+
+
+
+def writeFile(filename):
+    
+    lexContent = "import ply.lex as lex\n\n"
+    lexContent += parser.lex['tokens'] + "\n" + parser.lex['literals'] + "\n\n"
+    lexContent += parser.lex['def'] + "\n\n"
+    lexContent += parser.lex['ignore'] + "\n\n"
+    lexContent += "lexer = lex.lex()"
+    
+    newLex = filename + "_lex.py"
+    fOutLex = open(newLex, "w", encoding="utf-8")
+    fOutLex.write(lexContent)
+    fOutLex.close()
+    
+
+    yaccContent = "import re\n"
+    yaccContent += "import ply.yacc as yacc\n"
+    yaccContent += "from " + filename + "_lex import tokens, literals\n\n"
+    yaccContent += parser.yacc
+
+    newYacc = filename + "_yacc.py"
+    fOutYacc = open(newYacc, "w", encoding="utf-8")
+    fOutYacc.write(yaccContent)
+    fOutYacc.close()
+
+    return True
+
+
+
 # Build the parser
 parser = yacc.yacc()
 parser.funcNames = {}
+parser.lex = {}
+parser.yacc = ""
 
 # Read line from input and parse it
 import sys
@@ -307,18 +331,17 @@ parser.success = True
 
 filename = sys.argv[1]
 
-f = open(filename, 'r')
-content = f.read()
-print("\n# ---------------------   TOKENS   ---------------------\n")
+try:
+    file = open(filename, "r", encoding="utf-8")
+except FileNotFoundError:
+    print("ERRO! Ficheiro não existe")
+    exit(1)
 
-codigo = parser.parse(content)
-
-print("\n# ---------------------   OUTPUT   ---------------------\n")
-
+content = file.read()
+parser.parse(content)
 
 if parser.success:
-    print("Programa estruturalmente correto!")
-    print(codigo)
+    writeFile(filename[:-5])
 else:
     print("Programa com erros... Corrija e tente novamente!")
 
