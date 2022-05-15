@@ -4,11 +4,27 @@
 % ignore = " \t\n"
 % tokens = [ 'VAR','NUMBER' ]
 
-r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', t.value() )
+r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', t.value)
+r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', )
+r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', pass)
 r'\d+(\.\d+)?'            return('NUMBER', float(t.value) )
 .                         error(f"Illegal character '{t.value[0]}', [{t.lexer.lineno}]",t.lexer.skip(1) )
 
 %% YACC
+
+stat : VAR '=' exp {
+    ts[t[1]] = t[3]
+    print("eu comi uma batata")
+    if a in b:
+        a += c
+}
+stat : exp { print(t[1]) }
+stat : exp 
+exp : exp '+' exp { t[0] = t[1] + t[3] }
+exp : exp '-' exp { t[0] = t[1] - t[3] }
+exp : exp '*' exp { t[0] = t[1] * t[3] }
+exp : exp '/' exp { t[0] = t[1] / t[3] }
+
 
 %%
 
@@ -16,8 +32,9 @@ def p_error(t):
     print(f"Syntax error at '{t.value}', [{t.lexer.lineno}]")
 
 def getval(n):
-    if n not in ts:
+    if n not in ts :
         print(f"Undefined name '{n}'")
+        a += b
     return ts.get(n,0)
 
 y=yacc()

@@ -1,0 +1,58 @@
+%% LEX
+
+% literals = ['(', ')', '=', ',']
+% ignore = " \t\n"
+% tokens = ['INT', 'STR', 'f_INPUT', 'PRINT', 'id', 'str', 'DECLARATIONS', 'STATEMENTS']
+
+r'declarations'     return('DECLARATIONS',)
+r'statements'       return('STATEMENTS',)
+r'int'              return('INT',)
+r'str'              return('STR',)
+r'print'            return('PRINT',)
+r'input'            return('f_INPUT',)
+r'\"[^"]\"'         return('str',)
+r'[a-zA-Z_]\w*'     return('id',)
+.                   error(("Caracter ilegal: " + t.value[0]),t.lexer.skip(1) )
+
+%% YACC
+
+Program : DECLARATIONS Declarations STATEMENTS Statements
+Declarations : Declarations Declaration
+Declarations : 
+Declaration : Type IdList
+Type : INT
+Type : STR
+IdList : id
+IdList : IdList ',' id
+Statements : Statements Statement
+Statements : Statement
+Statement : Atrib
+Statement : Print
+Print : PRINT '(' PrintArgs ')'
+PrintArgs : PrintArgs ',' Arg
+PrintArgs : Arg
+Arg : str
+Arg : Exp
+Atrib : id '=' Exp
+Exp : INT '(' Exp ')'
+Exp : f_INPUT '(' str ')'
+Exp : id
+
+%%
+
+def p_error(p):
+    print('Erro Sintático: ', p)
+    parser.success = False
+
+
+parser = yacc.yacc()
+
+
+import sys
+parser.success = True
+program = sys.stdin.read()
+parser.parse(program)
+if parser.success:
+    print("Programa Válido")
+else:
+    print("Programa Inválido... Corrija e tente novamente")

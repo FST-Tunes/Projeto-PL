@@ -1,7 +1,11 @@
 import ply.lex as lex
 
-tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "NUM", "VALUE", "OP"] 
-literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')']
+tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "NUM", "VALUE", "OP", "NL"] 
+literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')', ]
+
+def t_NL(t):
+    r'\n[ \n]*'
+    return t
 
 def t_LEX(t):
     r'LEX'
@@ -47,7 +51,7 @@ def t_NUM(t):
     r'\d+'
     return t
 
-t_ignore = " \n\t"
+t_ignore = " \t"
 
 def t_error(t):
     print("Illegal character: " + t.value[0])
