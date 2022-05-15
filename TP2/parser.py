@@ -1,3 +1,4 @@
+import re
 import ply.yacc as yacc
 from lexer import tokens, literals 
 
@@ -6,52 +7,65 @@ def p_Program(p):
 
 def p_Lex(p):
     "Lex : Dec Def"
+    print(p[1] + "\n\n\n" + p[2])
 
 def p_Dec_Multiple(p):
     "Dec : Dec '%' Dec2"
+    p[0] = p[3] + "\n" + p[1] 
 
 def p_Dec_Single(p):
     "Dec : '%' Dec2"
+    p[0] = p[2]
 
 def p_Dec2_Tokens(p):
     "Dec2 : TOKENS '=' '[' Items ']'"
+    p[0] = "tokens = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_list(p):
     "Dec2 : LITERALS '=' '[' Items ']'"
+    p[0] = "literals = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_str(p):
-    "Dec2 : LITERALS '=' String"
+    "Dec2 : LITERALS '=' STRING"
+    m = re.findall(r'([^\\"\']|\\[\\\"a-z])', p[3])
+    p[0] = "literals = " + str(m)
 
 def p_Dec2_Ignore(p):
-    "Dec2 : IGNORE '=' String"
+    "Dec2 : IGNORE '=' STRING"
+    p[0] = "t_ignore = " + p[3]
 
 def p_Items_list(p):
     "Items : Items ',' Items2"
+    p[0] = p[1] + ", " + p[3]
 
 def p_Items_single(p):
     "Items : Items2"
+    p[0] = p[1]
 
 def p_Items2(p):
     "Items2 : VALUE "
-
-def p_String(p):
-    "String : STRING"
+    p[0] = p[1]
 
 def p_Def_list(p):
     "Def : Def Def2"
+    p[0] = p[1] + "\n\n" + p[2]
 
 def p_Def_single(p):
     "Def : Def2"
+    p[0] = p[1]
 
 def p_Def2_newDef(p):
     "Def2 : REGEX ID '(' VALUE ',' Func ')'"
+    funcName = re.match(r'(?:\')(.+)(?:\')',p[4])
+    p[0] = "def p_" + funcName.group(1) + "(p):\n    " + p[1] + "\n    " + "---FUNC---" # p[5])
 
 def p_Def2_error(p):
     "Def2 : '.' ID '(' STRING ',' Func ')'"
-
+    p[0] = "def p_error(p):\n    print(" + p[4] + ")\n    " + "---FUNC---" # p[5])
 
 def p_Func_id(p):
     "Func : ID Exp"
+    
 
 def p_Func_num(p):
     "Func : NUM"

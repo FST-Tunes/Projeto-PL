@@ -5,57 +5,46 @@ literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')']
 
 def t_LEX(t):
     r'LEX'
-    print(t)
     return t
 
 def t_YACC(t):
     r'YACC'
-    print(t)
     return t
 
 def t_TOKENS(t):
     r'tokens'
-    print(t)
     return t
 
 def t_IGNORE(t):
     r'ignore'
-    print(t)
     return t
 
 def t_LITERALS(t):
     r'literals'
-    print(t)
     return t
 
 def t_OP(t):
     r'((?:\+|-|\*|/|<|>|!)=?)|=='
-    print(t)
     return t
 
 def t_VALUE(t):
     r'\'[^\']+\''
-    print(t)
     return t
 
 def t_STRING(t):
     r'f?\"[^"]*\"'
-    print(t)
     return t
 
 def t_REGEX(t):
     r'r\'[^\']+\''
-    print(t)
     return t
 
 def t_ID(t):
     r'[A-Za-z_]\w*'
-    print(t)
     return t
 
 def t_NUM(t):
     r'\d+'
-    print(t)
     return t
 
 t_ignore = " \n\t"
