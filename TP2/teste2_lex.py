@@ -1,6 +1,6 @@
 import ply.lex as lex
 
-tokens = ['VAR', 'NUMBER']
+tokens = ['VAR', 'NUMBER', 'ID', 'P']
 literals = ['+', '-', '/', '*', '=', '(', ')']
 
 def t_VAR(t):
@@ -8,11 +8,11 @@ def t_VAR(t):
     t.value = t.value
     return t
 
-def t_VAR(t):
+def t_ID(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     return t
 
-def t_VAR(t):
+def t_P(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
     pass
 

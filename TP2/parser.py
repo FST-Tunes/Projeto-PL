@@ -4,6 +4,14 @@ from lexer import tokens, literals
 
 def p_Program(p):
     "Program : '%' '%' LEX NL Lex '%' '%' YACC NL Yacc '%' '%' NL Main"
+    for i in parser.vars.keys():
+        if type(parser.vars[i]) == bool and parser.vars[i]:
+            print("Warning: Token " + i + " por defenir")
+        if type(parser.vars[i]) != bool and parser.vars[i] == 0:
+            parser.success = False
+            print("Error: Variavel " + i + " por defenir")
+            exit(1)
+
     parser.yacc = p[10] + "\n\n" + p[14]
 
 def p_Lex(p):
@@ -18,15 +26,18 @@ def p_Dec_Single(p):
 
 def p_Dec2_Tokens(p):
     "Dec2 : TOKENS '=' '[' Items ']' NL"
+    appendList(p[4], True)
     parser.lex['tokens'] = "tokens = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_list(p):
     "Dec2 : LITERALS '=' '[' Items ']' NL"
+    appendList(p[4], False)
     parser.lex['literals'] = "literals = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_str(p):
     "Dec2 : LITERALS '=' STRING NL"
     m = re.findall(r'([^\\"\']|\\[\\\"a-z])', p[3])
+    appendList(str(m)[1:][:-1], False)
     parser.lex['literals'] = "literals = " + str(m)
 
 def p_Dec2_Ignore(p):
@@ -55,14 +66,25 @@ def p_Def_single(p):
 
 def p_Def2_newDef(p):
     "Def2 : REGEX ID '(' VALUE ',' Func ')' NL"
-    funcName = re.match(r'(?:\')(.+)(?:\')',p[4])
-    p[0] = "def t_" + funcName.group(1) + "(t):\n    " + p[1]
-    if p[6] == "pass":
-        p[0] += "\n    pass"
-    elif p[6] != "":
-        p[0] += "\n    t.value = " + p[6] + "\n    return t"
+    funcName = re.match(r'(?:\')(.+)(?:\')',p[4]).group(1)
+    if funcName in parser.vars.keys():
+        if parser.vars[funcName]:
+            parser.vars[funcName] = False
+            p[0] = "def t_" + funcName + "(t):\n    " + p[1]
+            if p[6] == "pass":
+                p[0] += "\n    pass"
+            elif p[6] != "":
+                p[0] += "\n    t.value = " + p[6] + "\n    return t"
+            else:
+                p[0] += "\n    return t"
+        else:
+            parser.success = False
+            print("Error: Token " + funcName + " nao pode ser redefenido")
+            exit(1)
     else:
-        p[0] += "\n    return t"
+        parser.success = False
+        print("Error: Token " + funcName + " nao e Token desta gramatica")
+        exit(1)
 
 def p_Def2_error(p):
     "Def2 : '.' ID '(' String ',' Func ')' NL"
@@ -160,11 +182,15 @@ def p_Inst_single(p):
 def p_Inst2(p):
     "Inst2 : ID ':' Logic Inst3"
     numb = 1
-    if p[1] in parser.funcNames:
-        numb = 1 + parser.funcNames[p[1]]
-        parser.funcNames[p[1]] = numb
-    else:
-        parser.funcNames[p[1]] = numb
+    if p[1] in parser.vars:
+        p1 = parser.vars[p[1]]
+        if type(p1) == int:
+            numb = 1 + p1
+        else:
+            parser.success = False
+            print("Error: Variavel " + p[1] + " nao e valida")
+            exit(1)
+    parser.vars[p[1]] = numb
     p[0] = "def p_" + p[1] + "_" + str(numb) + "(p):\n    \"" + p[1] + " :" + p[3] + "\"" + p[4]
 
 def p_Inst3_returnF(p):
@@ -193,11 +219,18 @@ def p_Logic_empty(p):
 
 def p_Logic2_id(p):
     "Logic2 : ID"
+    if p[1] not in parser.vars:
+        parser.vars[p[1]] = 0
     p[0] = p[1]
 
 def p_Logic2_value(p):
     "Logic2 : VALUE"
-    p[0] = p[1]
+    if p[1] not in parser.vars:
+        parser.success = False
+        print("Error: Literal " + p[1] + " nao faz parte desta gramatica")
+        exit(1)
+    else:
+        p[0] = p[1]
 
 
 
@@ -249,19 +282,23 @@ def p_Main2_p(p):
     p[0] = p[1]
 
 def p_Main2_id(p):
-    "Main2 : MainId"
+    "Main2 : MainIdNum"
     p[0] = p[1]
 
-def p_MainID_list(p):
-    "MainId : MainId ID"
+def p_MainIdNum_list(p):
+    "MainIdNum : MainIdNum idNum"
     p[0] = p[1] + " " + p[2]
 
-def p_MainID_empty(p):
-    "MainId : ID"
+def p_MainIdNum_single(p):
+    "MainIdNum : idNum"
     p[0] = p[1]
 
-def p_Main2_num(p):
-    "Main2 : NUM"
+def p_idNum_num(p):
+    "idNum : NUM"
+    p[0] = p[1]
+
+def p_idNum_id(p):
+    "idNum : ID"
     p[0] = p[1]
 
 def p_Main2_regex(p):
@@ -288,7 +325,15 @@ def p_error(p):
 
 
 
-
+def appendList(str, content):
+    if content:
+        g = re.findall(r'(?:\')([^\']+)(?:\')', str)
+        for i in g:
+            parser.vars[i] = True
+    else:
+        g = re.findall(r'(\'[^\']+\')', str)
+        for i in g:
+            parser.vars[i] = False
 
 
 def writeFile(filename):
@@ -321,7 +366,7 @@ def writeFile(filename):
 
 # Build the parser
 parser = yacc.yacc()
-parser.funcNames = {}
+parser.vars = {}
 parser.lex = {}
 parser.yacc = ""
 
@@ -334,7 +379,7 @@ filename = sys.argv[1]
 try:
     file = open(filename, "r", encoding="utf-8")
 except FileNotFoundError:
-    print("ERRO! Ficheiro não existe")
+    print("ERRO! Ficheiro nao existe")
     exit(1)
 
 content = file.read()
@@ -344,6 +389,3 @@ if parser.success:
     writeFile(filename[:-5])
 else:
     print("Programa com erros... Corrija e tente novamente!")
-
-
-

@@ -2,29 +2,29 @@
 
 % literals = "+-/*=()"
 % ignore = " \t\n"
-% tokens = [ 'VAR','NUMBER' ]
+% tokens = [ 'VAR', 'NUMBER', 'ID', 'P']
 
 r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', t.value)
-r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', )
-r'[a-zA-Z_][a-zA-Z0-9_]*' return('VAR', pass)
+r'[a-zA-Z_][a-zA-Z0-9_]*' return('ID', )
+r'[a-zA-Z_][a-zA-Z0-9_]*' return('P', pass)
 r'\d+(\.\d+)?'            return('NUMBER', float(t.value) )
 .                         error(f"Illegal character '{t.value[0]}', [{t.lexer.lineno}]",t.lexer.skip(1) )
 
 %% YACC
 
+exp : exp '+' fas { p[0] = p[1] + p[3] }
 stat : VAR '=' exp {
-    ts[t[1]] = t[3]
+    ts[p[1]] = p[3]
     print("eu comi uma batata")
-    if a in b:
-        a += c
+    if 1 == y.b:
+        y.a += y.c
 }
-stat : exp { print(t[1]) }
+stat : exp { print(p[1]) }
 stat : exp 
-exp : exp '+' exp { t[0] = t[1] + t[3] }
-exp : exp '-' exp { t[0] = t[1] - t[3] }
-exp : exp '*' exp { t[0] = t[1] * t[3] }
-exp : exp '/' exp { t[0] = t[1] / t[3] }
-
+exp : exp '-' exp { p[0] = p[1] - p[3] }
+exp : exp '*' exp { p[0] = p[1] * p[3] }
+exp : exp '/' exp { p[0] = p[1] / p[3] }
+fas : '-' stat
 
 %%
 
@@ -34,8 +34,12 @@ def p_error(t):
 def getval(n):
     if n not in ts :
         print(f"Undefined name '{n}'")
-        a += b
+        y.a += y.b
     return ts.get(n,0)
 
-y=yacc()
+ts = {}
+y = yacc.yacc()
+y.a = 1
+y.b = 1
+y.c = 2
 y.parse("3+4*7")

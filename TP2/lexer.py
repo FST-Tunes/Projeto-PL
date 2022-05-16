@@ -1,7 +1,7 @@
 import ply.lex as lex
 
-tokens = ["ID", "LEX", "YACC", "TOKENS", "IGNORE", "LITERALS", "STRING", "REGEX", "NUM", "VALUE", "OP", "NL"] 
-literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')', ]
+tokens = ['ID', 'LEX', 'YACC', 'TOKENS', 'IGNORE', 'LITERALS', 'STRING', 'REGEX', 'NUM', 'VALUE', 'OP', 'NL'] 
+literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')']
 
 def t_NL(t):
     r'\n[ \n]*'
