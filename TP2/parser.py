@@ -12,7 +12,7 @@ def p_Program(p):
             print("Error: Variavel " + i + " por defenir")
             exit(1)
 
-    parser.yacc = p[10] + "\n\n" + p[14]
+    parser.yacc = p[10] + "\n\n" + rmCom(p[14])
 
 def p_Lex(p):
     "Lex : Dec Def"
@@ -195,7 +195,7 @@ def p_Inst2(p):
 
 def p_Inst3_returnF(p):
     "Inst3 : '{' Return '}' NL"
-    p[0] = "\n    " + p[2]
+    p[0] = "\n    " + rmCom(p[2])
 
 def p_Inst3_nothing(p):
     "Inst3 : NL"
@@ -323,7 +323,9 @@ def p_error(p):
 
 
 
-
+def rmCom(str):
+    r = re.sub(r'\#.*',"",str)
+    return r
 
 def appendList(str, content):
     if content:
@@ -382,7 +384,7 @@ except FileNotFoundError:
     print("ERRO! Ficheiro nao existe")
     exit(1)
 
-content = file.read()
+content = file.read() + "\n"
 parser.parse(content)
 
 if parser.success:

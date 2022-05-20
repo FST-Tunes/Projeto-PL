@@ -3,10 +3,6 @@ import ply.lex as lex
 tokens = ['ID', 'LEX', 'YACC', 'TOKENS', 'IGNORE', 'LITERALS', 'STRING', 'REGEX', 'NUM', 'VALUE', 'OP', 'NL'] 
 literals = ['=', '"', '[', ']', ',', '{', '}', ':', '%', '.', '(', ')']
 
-def t_NL(t):
-    r'\n[ \n]*'
-    return t
-
 def t_LEX(t):
     r'LEX'
     return t
@@ -25,6 +21,10 @@ def t_IGNORE(t):
 
 def t_LITERALS(t):
     r'literals'
+    return t
+
+def t_NL(t):
+    r'(\#.+)?\n([ \n]|(\#.+))*'
     return t
 
 def t_OP(t):

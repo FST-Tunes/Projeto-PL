@@ -39,6 +39,8 @@ def p_fas_1(p):
 def p_error(t):
     print(f"Syntax error at '{t.value}', [{t.lexer.lineno}]")
 
+
+
 def getval(n):
     if n not in ts:
         print(f"Undefined name '{n}'")
