@@ -9,8 +9,14 @@ def p_Program(p):
             print("Warning: Token " + i + " por defenir")
         if type(parser.vars[i]) != bool and parser.vars[i] == 0:
             parser.success = False
-            print("Error: Variavel " + i + " por defenir")
+            print("Error: " + i + " por defenir")
             exit(1)
+    
+    if 'errorLex' not in parser.vars:
+        print("Warning: O caso de erro para o Lexer nao esta definido")
+    
+    if 'errorYacc' not in parser.vars:
+        print("Warning: O caso de erro para o Yacc nao esta definido")
 
     parser.yacc = p[10] + "\n\n" + rmCom(p[14])
 
@@ -26,23 +32,43 @@ def p_Dec_Single(p):
 
 def p_Dec2_Tokens(p):
     "Dec2 : TOKENS '=' '[' Items ']' NL"
-    appendList(p[4], True)
-    parser.lex['tokens'] = "tokens = " + "[" + p[4] + "]"
+    if 'tokens' in parser.lex:
+        parser.success = False
+        print("Error: Variavel tokens ja defenida")
+        exit(1)
+    else:
+        appendList(p[4], True)
+        parser.lex['tokens'] = "tokens = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_list(p):
     "Dec2 : LITERALS '=' '[' Items ']' NL"
-    appendList(p[4], False)
-    parser.lex['literals'] = "literals = " + "[" + p[4] + "]"
+    if 'literals' in parser.lex:
+        parser.success = False
+        print("Error: Variavel literals ja defenida")
+        exit(1)
+    else:
+        appendList(p[4], False)
+        parser.lex['literals'] = "literals = " + "[" + p[4] + "]"
 
 def p_Dec2_Literals_str(p):
     "Dec2 : LITERALS '=' STRING NL"
-    m = re.findall(r'([^\\"\']|\\[\\\"a-z])', p[3])
-    appendList(str(m)[1:][:-1], False)
-    parser.lex['literals'] = "literals = " + str(m)
+    if 'literals' in parser.lex:
+        parser.success = False
+        print("Error: Variavel literals ja defenida")
+        exit(1)
+    else:
+        m = re.findall(r'([^\\"\']|\\[\\\"a-z])', p[3])
+        appendList(str(m)[1:][:-1], False)
+        parser.lex['literals'] = "literals = " + str(m)
 
 def p_Dec2_Ignore(p):
     "Dec2 : IGNORE '=' STRING NL"
-    parser.lex['ignore'] = "t_ignore = " + p[3]
+    if 'ignore' in parser.lex:
+        parser.success = False
+        print("Error: Variavel ignore ja defenida")
+        exit(1)
+    else:
+        parser.lex['ignore'] = "t_ignore = " + p[3]
 
 def p_Items_list(p):
     "Items : Items ',' Items2"
@@ -83,35 +109,35 @@ def p_Def2_newDef(p):
             exit(1)
     else:
         parser.success = False
-        print("Error: Token " + funcName + " nao e Token desta gramatica")
+        print("Error: Token " + funcName + " nao existe nesta desta gramatica")
         exit(1)
 
 def p_Def2_error(p):
     "Def2 : '.' ID '(' String ',' Func ')' NL"
-    p[0] = "def t_error(t):\n    print(" + p[4] + ")\n    " + p[6]
+    if 'errorLex' in parser.vars:
+        parser.success = False
+        print("Error: Função de erro do lexer apenas pode ser defenida uma unica vez")
+        exit(1)
+    else:
+        parser.vars['errorLex'] = False
+        p[0] = "def t_error(t):\n    print(" + p[4] + ")\n    " + p[6]
 
-def p_String_str(p):
+def p_String_list(p):
+    "String : String OP String2"
+    if p[2] != '+':
+        parser.success = False
+    p[0] = p[1] + " + " + p[3]
+
+def p_String_single(p):
     "String : STRING"
     p[0] = p[1]
 
-def p_String_args(p):
-    "String : '(' StrArgs ')'"
-    p[0] = p[2]
-
-def p_StrArgs_list(p):
-    "StrArgs : StrArgs OP StrArgs2"
-    p[0] = p[1] + " + " + p[3]
-
-def p_StrArgs_single(p):
-    "StrArgs : StrArgs2"
+def p_String2_func(p):
+    "String2 : Func"
     p[0] = p[1]
 
-def p_StrArgs2_func(p):
-    "StrArgs2 : Func"
-    p[0] = p[1]
-
-def p_StrArgs2_str(p):
-    "StrArgs2 : STRING"
+def p_String2_str(p):
+    "String2 : STRING"
     p[0] = p[1]
 
 def p_Func_id(p):
@@ -120,6 +146,10 @@ def p_Func_id(p):
 
 def p_Func_num(p):
     "Func : NUM"
+    p[0] = p[1]
+
+def p_Func_str(p):
+    "Func : String"
     p[0] = p[1]
 
 def p_Func_empty(p):
@@ -168,7 +198,41 @@ def p_Args_empty(p):
 
 
 def p_Yacc(p):
-    "Yacc : Inst"
+    "Yacc : Vars Inst"
+    p[0] = p[2] + "\n\n\nparser = yacc.yacc()" + p[1]
+
+def p_Vars_list(p):
+    "Vars : Vars Vars2 "
+    p[0] = p[1] + p[2]
+
+def p_Vars_empty(p):
+    "Vars : "
+    p[0] = ""
+
+def p_Vars2(p):
+    "Vars2 : '%' ID '=' Vars3 NL"
+    p[0] = "\nparser." + p[2] + " = " + p[4]
+
+def p_Vars3_dic(p):
+    "Vars3 : '{' Vars4 '}'"
+    p[0] = "{" + p[2] + "}"
+
+def p_Vars3_list(p):
+    "Vars3 : '[' Vars4 ']'"
+    p[0] = "[" + p[2] + "]"
+
+def p_Vars3_func(p):
+    "Vars3 : Func"
+    if p[1] == "":
+        parser.success = False
+    p[0] = p[1]
+
+def p_Vars4_multLine(p):
+    "Vars4 : NL Main"
+    p[0] = p[1] + p[2]
+
+def p_Vars4_singleLine(p):
+    "Vars4 : Main"
     p[0] = p[1]
 
 def p_Inst_list(p):
@@ -179,19 +243,28 @@ def p_Inst_single(p):
     "Inst : Inst2"
     p[0] = p[1]
 
-def p_Inst2(p):
+def p_Inst2_rule(p):
     "Inst2 : ID ':' Logic Inst3"
     numb = 1
     if p[1] in parser.vars:
-        p1 = parser.vars[p[1]]
-        if type(p1) == int:
-            numb = 1 + p1
+        if type(parser.vars[p[1]]) == int:
+            numb = 1 + parser.vars[p[1]]
         else:
             parser.success = False
             print("Error: Variavel " + p[1] + " nao e valida")
             exit(1)
     parser.vars[p[1]] = numb
     p[0] = "def p_" + p[1] + "_" + str(numb) + "(p):\n    \"" + p[1] + " :" + p[3] + "\"" + p[4]
+
+def p_Inst2_error(p):
+    "Inst2 : '.' Inst3"
+    if 'errorYacc' in parser.vars:
+        parser.success = False
+        print("Error: Função de erro do parser apenas pode ser defenida uma unica vez")
+        exit(1)
+    else:
+        parser.vars['errorYacc'] = False
+        p[0] = "def p_error(p):" + p[2]
 
 def p_Inst3_returnF(p):
     "Inst3 : '{' Return '}' NL"
@@ -231,8 +304,6 @@ def p_Logic2_value(p):
         exit(1)
     else:
         p[0] = p[1]
-
-
 
 
 
@@ -331,11 +402,21 @@ def appendList(str, content):
     if content:
         g = re.findall(r'(?:\')([^\']+)(?:\')', str)
         for i in g:
-            parser.vars[i] = True
+            if i not in parser.vars:
+                parser.vars[i] = True
+            else:
+                parser.success = False
+                print("Error: Token " + i + " duplicado")
+                exit(1)
     else:
         g = re.findall(r'(\'[^\']+\')', str)
         for i in g:
-            parser.vars[i] = False
+            if i not in parser.vars:
+                parser.vars[i] = False
+            else:
+                parser.success = False
+                print("Error: Literal " + i + " duplicado")
+                exit(1)
 
 
 def writeFile(filename):
@@ -371,11 +452,11 @@ parser = yacc.yacc()
 parser.vars = {}
 parser.lex = {}
 parser.yacc = ""
+parser.success = True
+
 
 # Read line from input and parse it
 import sys
-parser.success = True
-
 filename = sys.argv[1]
 
 try:

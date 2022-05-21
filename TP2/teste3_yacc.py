@@ -70,8 +70,8 @@ def p_error(p):
     parser.success = False
 
 
-parser = yacc.yacc()
 
+parser = yacc.yacc()
 
 import sys
 parser.success = True

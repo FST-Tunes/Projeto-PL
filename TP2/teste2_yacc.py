@@ -8,10 +8,10 @@ def p_exp_1(p):
 
 def p_stat_1(p):
     "stat : VAR '=' exp"
-    ts[p[1]] = p[3]
+    parser.ts[p[1]] = p[3]
     print("eu comi uma batata")
-    if 1 == y.b:
-        y.a += y.c
+    if 1 == parser.b:
+        parser.a += parser.c
 
 
 def p_stat_2(p):
@@ -36,20 +36,24 @@ def p_exp_4(p):
 def p_fas_1(p):
     "fas : '-' stat"
 
-def p_error(t):
-    print(f"Syntax error at '{t.value}', [{t.lexer.lineno}]")
+def p_error(p):
+    print(f"Syntax error at '{p.value}', [{p.lexer.lineno}]")
 
 
+parser = yacc.yacc()
+parser.ts = {}
+parser.a = 1
+parser.b = {
+    'asd':14, 
+    1:parser.a, 
+}
+parser.c = ""
+parser.d = "aaa" + parser.c
 
 def getval(n):
-    if n not in ts:
+    if n not in parser.ts:
         print(f"Undefined name '{n}'")
-        y.a += y.b
-    return ts.get(n, 0)
+        parser.a += parser.b
+    return parser.ts.get(n, 0)
 
-ts = {}
-y = yacc.yacc()
-y.a = 1
-y.b = 1
-y.c = 2
-y.parse("3+4*7")
+parser.parse("3+4*7")

@@ -14,12 +14,22 @@ r'\d+(\.\d+)?'            return('NUMBER', float(t.value) )
 
 %% YACC
 
+% ts = {}
+% a = 1
+% b = {
+    'asd' : 14,
+    1 : parser.a,
+}
+% c = ""
+% d = "aaa" + parser.c
+
+
 exp : exp '+' fas { p[0] = p[1] + p[3] }    # comment 8
 stat : VAR '=' exp {
-    ts[p[1]] = p[3]
+    parser.ts[p[1]] = p[3]
     print("eu comi uma batata")             # comment 9
-    if 1 == y.b:
-        y.a += y.c
+    if 1 == parser.b:
+        parser.a += parser.c
 }
 stat : exp { print(p[1]) }
 stat : exp 
@@ -27,23 +37,16 @@ exp : exp '-' exp { p[0] = p[1] - p[3] }
 exp : exp '*' exp { p[0] = p[1] * p[3] }
 exp : exp '/' exp { p[0] = p[1] / p[3] }
 fas : '-' stat                              # comment 10
+. { print(f"Syntax error at '{p.value}', [{p.lexer.lineno}]") }
 
 %% # comment 11
-
-def p_error(t):     # comment 12
-    print(f"Syntax error at '{t.value}', [{t.lexer.lineno}]")
 
 # comment 13 # comment 14
 
 def getval(n):
-    if n not in ts :
+    if n not in parser.ts :
         print(f"Undefined name '{n}'")
-        y.a += y.b
-    return ts.get(n,0)
+        parser.a += parser.b
+    return parser.ts.get(n,0)
 
-ts = {}
-y = yacc.yacc()
-y.a = 1
-y.b = 1
-y.c = 2
-y.parse("3+4*7")   # comment 15
+parser.parse("3+4*7")   # comment 15
