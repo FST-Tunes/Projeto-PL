@@ -16,6 +16,7 @@ r'[a-zA-Z_]\w*'     return('id',)
 
 %% YACC
 
+% success = True
 
 
 Program : DECLARATIONS Declarations STATEMENTS Statements
@@ -48,7 +49,6 @@ Exp : id
 
 
 import sys
-parser.success = True
 program = sys.stdin.read()
 parser.parse(program)
 if parser.success:

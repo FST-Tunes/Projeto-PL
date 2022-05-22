@@ -1,7 +1,7 @@
 import ply.lex as lex
 
-tokens = ['INT', 'STR', 'f_INPUT', 'PRINT', 'id', 'str', 'DECLARATIONS', 'STATEMENTS']
 literals = ['(', ')', '=', ',']
+tokens = ['INT', 'STR', 'f_INPUT', 'PRINT', 'id', 'str', 'DECLARATIONS', 'STATEMENTS']
 
 def t_DECLARATIONS(t):
     r'declarations'

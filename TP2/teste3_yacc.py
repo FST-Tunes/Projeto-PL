@@ -72,9 +72,9 @@ def p_error(p):
 
 
 parser = yacc.yacc()
+parser.success = True
 
 import sys
-parser.success = True
 program = sys.stdin.read()
 parser.parse(program)
 if parser.success:

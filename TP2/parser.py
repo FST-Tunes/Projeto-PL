@@ -3,7 +3,12 @@ import ply.yacc as yacc
 from lexer import tokens, literals 
 
 def p_Program(p):
-    "Program : '%' '%' LEX NL Lex '%' '%' YACC NL Yacc '%' '%' NL Main"
+    "Program : IgnoreEnter '%' '%' LEX NL Lex '%' '%' YACC NL Yacc '%' '%' NL Main"
+    if 'tokens' not in parser.lex:
+        parser.success = False
+        print("Error: Lista de Tokens por defenir")
+        exit(1)
+
     for i in parser.vars.keys():
         if type(parser.vars[i]) == bool and parser.vars[i]:
             print("Warning: Token " + i + " por defenir")
@@ -11,14 +16,25 @@ def p_Program(p):
             parser.success = False
             print("Error: " + i + " por defenir")
             exit(1)
-    
+
     if 'errorLex' not in parser.vars:
         print("Warning: O caso de erro para o Lexer nao esta definido")
-    
+
     if 'errorYacc' not in parser.vars:
         print("Warning: O caso de erro para o Yacc nao esta definido")
 
-    parser.yacc = p[10] + "\n\n" + rmCom(p[14])
+    parser.yacc = p[11] + "\n\n" + rmCom(p[15])
+
+
+
+def p_IgnoreEnter_enter(p):
+    "IgnoreEnter : NL"
+
+def p_IgnoreEnter_nothing(p):
+    "IgnoreEnter : "
+
+
+
 
 def p_Lex(p):
     "Lex : Dec Def"
@@ -267,20 +283,12 @@ def p_Inst2_error(p):
         p[0] = "def p_error(p):" + p[2]
 
 def p_Inst3_returnF(p):
-    "Inst3 : '{' Return '}' NL"
-    p[0] = "\n    " + rmCom(p[2])
+    "Inst3 : '{' IgnoreEnter Main '}' NL"
+    p[0] = "\n    " + rmCom(p[3])
 
 def p_Inst3_nothing(p):
     "Inst3 : NL"
     p[0] = ""
-
-def p_Return_multLine(p):
-    "Return : NL Main"
-    p[0] = p[2]
-
-def p_Return_singleLine(p):
-    "Return : Main"
-    p[0] = p[1]
 
 def p_Logic_list(p):
     "Logic : Logic Logic2"
@@ -421,11 +429,19 @@ def appendList(str, content):
 
 def writeFile(filename):
     
-    lexContent = "import ply.lex as lex\n\n"
-    lexContent += parser.lex['tokens'] + "\n" + parser.lex['literals'] + "\n\n"
-    lexContent += parser.lex['def'] + "\n\n"
-    lexContent += parser.lex['ignore'] + "\n\n"
-    lexContent += "lexer = lex.lex()"
+    lexContent = "import ply.lex as lex\n"
+
+    if 'literals' in parser.lex:
+        lexContent += "\n" + parser.lex['literals']
+
+    lexContent += "\n" + parser.lex['tokens'] + "\n"
+    if 'def' in parser.lex:
+        lexContent += "\n" + parser.lex['def']
+
+    if 'ignore' in parser.lex:
+        lexContent += "\n\n" + parser.lex['ignore']
+
+    lexContent += "\n\nlexer = lex.lex()"
     
     newLex = filename + "_lex.py"
     fOutLex = open(newLex, "w", encoding="utf-8")
@@ -457,7 +473,14 @@ parser.success = True
 
 # Read line from input and parse it
 import sys
-filename = sys.argv[1]
+
+if sys.argv[1] == "-r":
+    run = True
+    filename = sys.argv[2]
+else:
+    run = False
+    filename = sys.argv[1]
+
 
 try:
     file = open(filename, "r", encoding="utf-8")
@@ -470,5 +493,9 @@ parser.parse(content)
 
 if parser.success:
     writeFile(filename[:-5])
+    if run: 
+        import os
+        r = "python3.8 " + filename[:-5] + "_yacc.py"
+        os.system(r)
 else:
     print("Programa com erros... Corrija e tente novamente!")

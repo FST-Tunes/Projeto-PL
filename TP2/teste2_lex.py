@@ -1,7 +1,7 @@
 import ply.lex as lex
 
-tokens = ['VAR', 'NUMBER', 'ID', 'P']
 literals = ['+', '-', '/', '*', '=', '(', ')']
+tokens = ['VAR', 'NUMBER', 'ID', 'P']
 
 def t_VAR(t):
     r'[a-zA-Z_][a-zA-Z0-9_]*'
